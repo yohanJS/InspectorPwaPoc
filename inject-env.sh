@@ -1,2 +1,1 @@
-#!/bin/bash
-sed -i "s|env:PUBLIC_API_KEY|${PUBLIC_API_KEY}|" wwwroot/appsettings.json
+sed -i "s|env:API_KEY_PUBLIC|${API_KEY_PUBLIC}|" wwwroot/appsettings.json
