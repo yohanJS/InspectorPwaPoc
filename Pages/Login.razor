@@ -2,6 +2,7 @@
 @inject NavigationManager Navigation
 @inject HttpClient Http
 @inject IJSRuntime JS
+@inject IConfiguration Configuration
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="my-5 pt-5">
     <MudPaper Class="mx-auto p-6" Style="max-width: 420px; border-radius: 12px; padding:20px">
@@ -96,13 +97,13 @@
 
         try
         {
+            var apiKey = Configuration["ApiKey"];
             var request = new HttpRequestMessage(HttpMethod.Post, "/Account/login")
             {
                 Content = JsonContent.Create(loginModel)
             };
 
-            // Add your API key to the headers
-            request.Headers.Add("x-api-key", "0d2e643e-e9b4-4b1a-bb7a-e717f4ae1f5d"); // Replace with your actual key
+            request.Headers.Add("x-api-key", apiKey);
 
             var response = await Http.SendAsync(request);
 
@@ -136,21 +137,13 @@
         }
     }
 
-    // private void LoginWithProvider(string provider)
-    // {
-    //     var apiBaseUrl = "https://localhost:7041"; // Or use config/env
-    //     Navigation.NavigateTo($"{apiBaseUrl}/login/{provider}", forceLoad: true);
-    // }
-
     private async Task LoginWithProvider(string provider)
     {
-        // Set the API key in a secure cookie
-        await JS.InvokeVoidAsync("eval", @"
-        document.cookie = 'x-api-key=b080b57967024b238fb80744c188d86753000efb978b4c1e92ce97bf903ee76c; path=/; secure; samesite=strict';
-    ");
+        var apiKey = Configuration["ApiKey"];
+        var apiBaseUrl = Configuration["ApiBaseUrl"];
 
-        // Redirect to external login
-        var apiBaseUrl = "https://localhost:7041";
+        await JS.InvokeVoidAsync("eval", $"document.cookie = 'x-api-key={apiKey}; path=/; secure; samesite=strict';");
+
         Navigation.NavigateTo($"{apiBaseUrl}/login/{provider}", forceLoad: true);
     }
 
