@@ -145,7 +145,7 @@
 
         await JS.InvokeVoidAsync("eval", $"document.cookie = 'x-api-key={apiKey}; path=/; secure; samesite=strict';");
 
-        Navigation.NavigateTo($"{apiBaseUrl}/login/{provider}", forceLoad: true);
+        Navigation.NavigateTo($"{apiBaseUrl}/redirect/{provider}", forceLoad: true);
     }
 
     public class LoginModel
