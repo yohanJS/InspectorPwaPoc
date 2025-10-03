@@ -1,0 +1,34 @@
+﻿@page "/auth-callback"
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<p>Completing authentication...</p>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var token = GetTokenFromUri(Navigation.Uri);
+
+        if (!string.IsNullOrEmpty(token))
+        {
+            // Store token in sessionStorage
+            await JS.InvokeVoidAsync("localStorage.setItem", "jwt", token);
+        }
+
+        // Redirect to home page or dashboard
+        Navigation.NavigateTo("/", forceLoad: true);
+    }
+
+    private string? GetTokenFromUri(string uri)
+    {
+        var query = new Uri(uri).Query;
+
+        // Parse the query manually without System.Web
+        var queryParams = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(query);
+        if (queryParams.TryGetValue("token", out var tokenValues))
+        {
+            return tokenValues.FirstOrDefault();
+        }
+        return null;
+    }
+}

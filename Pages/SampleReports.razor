@@ -1,0 +1,65 @@
+﻿@page "/sample-reports"
+@using MudBlazor
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-5 px-3 px-md-5 py-4">
+    <MudText Typo="Typo.h4" Class="fw-bold mb-4">Explore sample reports</MudText>
+    <MudGrid Gutter="GutterSize.Small">
+        @foreach (var report in sampleReports)
+        {
+            <MudItem xs="12" md="6" lg="4">
+                <MudCard Class="h-100 shadow-sm">
+                    <MudCardMedia Image="@report.ImageUrl" Height="180" Class="rounded-top" />
+                    <MudCardContent>
+                        <MudText Typo="Typo.h6" Class="fw-semibold mb-1">@report.Title</MudText>
+                        <MudText Typo="Typo.body2">@report.Location</MudText>
+                        <MudText Typo="Typo.body2">@report.Pages pages</MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    public class SampleReport
+    {
+        public string Title { get; set; }
+        public string Location { get; set; }
+        public int Pages { get; set; }
+        public string ImageUrl { get; set; }
+    }
+
+    public List<SampleReport> sampleReports = new()
+    {
+        new SampleReport {
+            Title = "Multi-family property",
+            Location = "San Francisco, CA",
+            Pages = 6,
+            ImageUrl = "https://imagedelivery.net/YIVCzYnz4796uVIlcnjggw/baaec369-962a-41fd-7f91-25b59b8b4600/public"
+        },
+        new SampleReport {
+            Title = "Single family property",
+            Location = "Los Angeles, CA",
+            Pages = 7,
+            ImageUrl = "https://imagedelivery.net/YIVCzYnz4796uVIlcnjggw/baaec369-962a-41fd-7f91-25b59b8b4600/public"
+        },
+        new SampleReport {
+            Title = "Single family property",
+            Location = "New York, NY",
+            Pages = 5,
+            ImageUrl = "https://imagedelivery.net/YIVCzYnz4796uVIlcnjggw/baaec369-962a-41fd-7f91-25b59b8b4600/public"
+        },
+        new SampleReport {
+            Title = "Single family property",
+            Location = "Seattle, WA",
+            Pages = 4,
+            ImageUrl = "https://imagedelivery.net/YIVCzYnz4796uVIlcnjggw/baaec369-962a-41fd-7f91-25b59b8b4600/public"
+        },
+        new SampleReport {
+            Title = "Condo",
+            Location = "San Francisco, CA",
+            Pages = 6,
+            ImageUrl = "https://imagedelivery.net/YIVCzYnz4796uVIlcnjggw/baaec369-962a-41fd-7f91-25b59b8b4600/public"
+        }
+    };
+}

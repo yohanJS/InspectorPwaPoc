@@ -1,0 +1,74 @@
+﻿@page "/testimonials"
+
+<div class="container mt-5 p-2">
+    <h5 class="text-center fw-semibold mt-3 mb-4">Testimonials</h5>
+    <div class="row g-4 justify-content-center">
+        @foreach (var testimonial in TestimonialsList)
+        {
+            <div class="col-12 col-md-6 col-lg-4 d-flex">
+                <div class="card shadow-sm rounded-4 p-4 border-0 flex-fill">
+                    <div class="d-flex align-items-center mb-1">
+                        <img src="@testimonial.ImageUrl" class="rounded-circle me-2" width="32" height="32" alt="Profile image" />
+                        <div>
+                            <div class="fw-semibold">@testimonial.Name</div>
+                            <div class="text-muted" style="font-size: 0.8rem;">@testimonial.Date</div>
+                        </div>
+                    </div>
+                    <div class="mb-1">
+                        @for (int i = 0; i < 5; i++)
+                        {
+                            if (i < testimonial.Rating)
+                            {
+                                <span class="text-warning">★</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">★</span>
+                            }
+                        }
+                    </div>
+                    <p class="mb-0" style="font-size: 0.95rem;">@testimonial.Content</p>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    public class Testimonial
+    {
+        public string Name { get; set; }
+        public string Date { get; set; }
+        public int Rating { get; set; }
+        public string Content { get; set; }
+        public string ImageUrl { get; set; }
+    }
+
+    public List<Testimonial> TestimonialsList = new List<Testimonial>
+    {
+        new Testimonial
+        {
+            Name = "Cynthia W.",
+            Date = "July 2022",
+            Rating = 5,
+            Content = "I've used this service twice in the past year and both times were great. I would highly recommend them to anyone looking for a home inspection.",
+            ImageUrl = "https://i.pravatar.cc/50?img=1"
+        },
+        new Testimonial
+        {
+            Name = "Linda H.",
+            Date = "June 2022",
+            Rating = 5,
+            Content = "The inspector was very thorough and professional. The report was easy to read and understand. I would definitely use their services again.",
+            ImageUrl = "https://i.pravatar.cc/50?img=2"
+        },
+        new Testimonial
+        {
+            Name = "Bryan G.",
+            Date = "May 2022",
+            Rating = 4,
+            Content = "Overall, the experience was good and the report was detailed, which is important when you're making such a big decision.",
+            ImageUrl = "https://i.pravatar.cc/50?img=3"
+        }
+    };
+}

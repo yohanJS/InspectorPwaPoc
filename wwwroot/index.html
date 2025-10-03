@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--Matches the top bar to the navbar color-->
+    <meta name="theme-color" content="#594ae2" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#594ae2" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#27272f" />
+
+    <title>Insptor</title>
+    <base href="/" />
+    <link rel="stylesheet" href="css/app.css" />
+    <link rel="icon" type="image/png" href="LOGO.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="LOGO.png" />
+    <!--BOOTSTRAP 5.3-->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <link href="InspectorPwaPoc.styles.css" rel="stylesheet" />
+    <!--Mudblazor-->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <link href="manifest.webmanifest" rel="manifest" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <div id="custom-loader">
+            <img src="LOGO.png" alt="Loading..." style="width:80px; margin-bottom:16px;" />
+            <div class="loader-spinner"></div>
+            <div style="margin-top:12px; font-size:1.2em; color:#1976d2;">Loading InspTor...</div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <!--BOOTSTRAP 5.3-->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.min.js" integrity="sha384-7qAoOXltbVP82dhxHAUje59V5r2YsVfBafyUDxEdApLPmcdhBPg1DKg1ERo0BZlK" crossorigin="anonymous"></script>
+    <script src="_framework/blazor.webassembly.js"></script>
+    <script>navigator.serviceWorker.register('service-worker.js');</script>
+</body>
+
+</html>
+
+<script>
+    window.blazorNetworkHelper = {
+        isOnline: () => navigator.onLine,
+        registerOnlineOfflineHandlers: function (dotNetHelper) {
+            window.addEventListener('online', () => {
+                dotNetHelper.invokeMethodAsync('SetOnlineStatus', true);
+            });
+            window.addEventListener('offline', () => {
+                dotNetHelper.invokeMethodAsync('SetOnlineStatus', false);
+            });
+        }
+    };
+</script>
+
+<style>
+    #custom-loader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: #f7f7f7;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        #custom-loader {
+            background: #27272f;
+        }
+    }
+
+    .loader-spinner {
+        border: 6px solid #e0e0e0;
+        border-top: 6px solid #1976d2;
+        border-radius: 50%;
+        width: 48px;
+        height: 48px;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+

@@ -1,0 +1,110 @@
+﻿@inherits LayoutComponentBase
+@inject IJSRuntime JS
+@implements IDisposable
+@inject ISnackbar Snackbar
+
+<MudThemeProvider />  
+<MudPopoverProvider />  
+<MudDialogProvider />  
+<MudSnackbarProvider />  
+
+<MudLayout>  
+    <MudAppBar>
+        <MudLink Href="/" Style="flex:1;">
+            <MudText Typo="Typo.h6" Class="d-flex align-center" Style="font-weight: bold; color: var(--mud-palette-text-primary);">
+                <img src="/LOGO.png" class="logo-img" />
+                <span class="text-white fw-medium p-2"> InspTor</span>
+            </MudText>
+        </MudLink>
+        @*Displays network status Online/Offline*@
+        @if (isOnline)
+        {
+            <MudText Color="Color.Success" Typo="Typo.h6" Class="d-flex align-items-center" Style="font-weight:500; font-size:1rem;">
+                <MudIcon Icon="@Icons.Material.Filled.Wifi" Class="me-1" />
+                Online
+            </MudText>
+        }
+        else
+        {
+            <MudText Color="Color.Warning" Typo="Typo.h6" Class="d-flex align-items-center" Style="font-weight:500; font-size:1rem;">
+                <MudIcon Icon="@Icons.Material.Filled.WifiOff" Class="me-1" />
+                Offline
+            </MudText>
+        }
+        <MudIconButton Icon="@Icons.Material.Filled.Menu"  
+                       Color="Color.Inherit"  
+                       Edge="Edge.End"  
+                       OnClick="@((e) => DrawerToggle())" />  
+    </MudAppBar>  
+    <MudDrawer @bind-Open="@_drawerOpen" Anchor="Anchor.Right">  
+        <MyNavMenu />  
+    </MudDrawer>  
+    <MudMainContent Class="full-height">  
+        <MudContainer MaxWidth="MaxWidth.Medium">  
+            @Body  
+        </MudContainer>  
+    </MudMainContent>  
+</MudLayout>  
+
+@code {  
+
+    private bool _isDarkMode = false; // Set to true for default dark mode  
+    private bool _drawerOpen = true;
+    private bool isOnline = true;
+    private DotNetObjectReference<MainLayout>? _dotNetRef;
+
+    void DrawerToggle()  
+    {  
+        _drawerOpen = !_drawerOpen;  
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _dotNetRef = DotNetObjectReference.Create(this);
+        isOnline = await JS.InvokeAsync<bool>("blazorNetworkHelper.isOnline");
+        await JS.InvokeVoidAsync("blazorNetworkHelper.registerOnlineOfflineHandlers", _dotNetRef);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public void SetOnlineStatus(bool online)
+    {
+        isOnline = online;
+        if (!isOnline)
+        {
+            Snackbar.Add("You are offline. Some features may not be available.", Severity.Warning, config =>
+            {
+                config.VisibleStateDuration = 10000;
+                config.RequireInteraction = true;
+            });
+        }
+        else
+        {
+            Snackbar.Add("You are back online.", Severity.Success, config =>
+            {
+                config.VisibleStateDuration = 4000;
+            });
+        }
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        _dotNetRef?.Dispose();
+    }
+}  
+
+<style>  
+    .full-height {  
+        min-height: 100vh;  
+        display: flex;  
+        flex-direction: column;  
+    }
+    .logo-img {
+        height: 32px;
+        width: auto;
+        max-width: 120px;
+        vertical-align: middle;
+        display: inline-block;
+    }
+</style>

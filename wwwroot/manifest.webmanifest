@@ -1,0 +1,27 @@
+{
+  "name": "Insptor",
+  "short_name": "Insptor",
+  "id": "./",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#594ae2",
+  "theme_color": "#594ae2",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "LOGO.png",
+      "type": "image/png",
+      "sizes": "500x500"
+    },
+    {
+      "src": "LOGO-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "LOGO-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

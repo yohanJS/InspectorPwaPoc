@@ -1,0 +1,7 @@
+﻿<MudThemeProvider @bind-IsDarkMode="@_isDarkMode" Theme="_theme" />
+<MudSwitch @bind-Value="_isDarkMode" Color="Color.Primary" Class="ma-4" T="bool" Label="Light/Dark Mode" />
+
+@code {
+    private MudTheme _theme = new();
+    private bool _isDarkMode = false;
+}

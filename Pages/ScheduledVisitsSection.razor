@@ -1,0 +1,364 @@
+﻿@page "/scheduled-visits"
+@inherits LayoutComponentBase
+@using InspectorPwaPoc.Models
+@inject NavigationManager Navigation
+@inject IDialogService DialogService
+
+<style>
+    .visit-card:hover {
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: box-shadow 0.2s ease-in-out;
+    }
+
+    .visit-info {
+        display: grid;
+        row-gap: 6px;
+        font-size: 0.875rem;
+        color: var(--mud-palette-text-secondary);
+        margin-top: 10px;
+    }
+
+    .visit-icon {
+        font-size: 1rem;
+        margin-right: 6px;
+        vertical-align: middle;
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+        width: 100%;
+    }
+
+    .calendar-header {
+        font-weight: bold;
+        text-align: center;
+        background: #f5f5f5;
+        padding: 6px 0;
+        font-size: 1rem;
+    }
+
+    .calendar-cell {
+        min-height: 80px;
+        border: 1px solid var(--mud-palette-lines-default);
+        padding: 4px;
+        vertical-align: top;
+        background: var(--mud-palette-background-paper);
+        font-size: 0.95rem;
+        overflow-x: auto;
+    }
+
+    .calendar-date {
+        font-size: 0.8rem;
+        color: #888;
+        margin-bottom: 2px;
+    }
+
+    .visit-pill {
+        display: inline-block;
+        background-color: var(--mud-palette-background-grey);
+        border-radius: 12px;
+        padding: 4px 8px;
+        margin: 2px 0;
+        font-size: 0.8rem;
+        color: var(--mud-palette-text-primary);
+    }
+
+    @@media (max-width: 900px) {
+        .calendar-header, .calendar-cell {
+            font-size: 0.85rem;
+            padding: 3px 0;
+        }
+
+        .calendar-cell {
+            min-height: 60px;
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .calendar-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .calendar-header, .calendar-cell {
+            font-size: 0.8rem;
+        }
+
+        .calendar-cell {
+            min-height: 50px;
+        }
+    }
+</style>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4 p-0">
+    <MudGrid Class="mb-4">
+        <MudItem xs="6">
+            <MudText Typo="Typo.h5" Class="title-page">Scheduled Visits</MudText>
+        </MudItem>
+        <MudItem xs="6" Class="text-end">
+            <span class="text-primary" style="cursor:pointer;" @onclick="@GoToDashboard">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left-short" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M12 8a.5.5 0 0 1-.5.5H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5a.5.5 0 0 1 .5.5" />
+                </svg>
+                Back to Dashboard
+            </span>
+        </MudItem>
+    </MudGrid>
+
+    <MudPaper Class="space-y-6 p-4">
+        <div>
+            <MudText Typo="Typo.body2">
+                Manage your upcoming and completed inspections
+            </MudText>
+        </div>
+        <MudTabs @bind-ActivePanelIndex="_activeViewIndex" Rounded="true">
+            <MudTabPanel Text="List">
+                @ListView()
+            </MudTabPanel>
+            <MudTabPanel Text="Weekly">
+                @WeeklyView()
+            </MudTabPanel>
+            <MudTabPanel Text="Monthly">
+                @MonthlyView()
+            </MudTabPanel>
+        </MudTabs>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private int _activeViewIndex = 0;
+    private int _activeTabIndex = 0;
+    private Visit? SelectedVisit { get; set; }
+    private DateTime _weeklyStart = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek);
+    private DateTime _monthlyReference = DateTime.Today;
+
+
+    private void GoToDashboard()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private async Task ShowVisitDialog(Visit visit)
+    {
+        var parameters = new DialogParameters { ["Visit"] = visit };
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small };
+        await DialogService.ShowAsync<VisitDetailsDialog>("Visit Details", parameters, options);
+    }
+
+    private List<Visit> Visits = new()
+{
+    // Current Month (June 2025)
+    new() {
+        Id = "1", ClientName = "John Smith", ClientPhone = "(555) 123-4567", ClientEmail = "john.smith@email.com",
+        PropertyAddress = "123 Oak Street, Springfield, IL 62701", PropertyType = "Single Family Home",
+        Date = "2025-06-26", Time = "10:00 AM", Status = "upcoming"
+    },
+    new() {
+        Id = "1", ClientName = "John Smith", ClientPhone = "(555) 123-4567", ClientEmail = "john.smith@email.com",
+        PropertyAddress = "123 Oak Street, Springfield, IL 62701", PropertyType = "Single Family Home",
+        Date = "2025-06-23", Time = "10:00 AM", Status = "upcoming"
+    },
+    new() {
+        Id = "2", ClientName = "Sarah Johnson", ClientPhone = "(555) 987-6543", ClientEmail = "sarah.j@email.com",
+        PropertyAddress = "456 Pine Avenue, Springfield, IL 62702", PropertyType = "Condominium",
+        Date = "2025-06-26", Time = "2:00 PM", Status = "completed", Outcome = "passed"
+    },
+    new() {
+        Id = "3", ClientName = "Mike Davis", ClientPhone = "(555) 456-7890", ClientEmail = "mike.davis@email.com",
+        PropertyAddress = "789 Elm Drive, Springfield, IL 62703", PropertyType = "Townhouse",
+        Date = "2025-06-24", Time = "9:00 AM", Status = "completed", Outcome = "issues-found", PendingBalance = 150
+    },
+
+    // Previous Month (May 2025)
+    new() {
+        Id = "4", ClientName = "Emma Carter", ClientPhone = "(555) 111-2222", ClientEmail = "emma.carter@email.com",
+        PropertyAddress = "321 Maple Lane, Springfield, IL 62704", PropertyType = "Duplex",
+        Date = "2025-05-12", Time = "11:00 AM", Status = "completed", Outcome = "passed"
+    },
+    new() {
+        Id = "5", ClientName = "Daniel Lee", ClientPhone = "(555) 333-4444", ClientEmail = "daniel.lee@email.com",
+        PropertyAddress = "654 Cedar Street, Springfield, IL 62705", PropertyType = "Single Family Home",
+        Date = "2025-05-18", Time = "1:30 PM", Status = "completed", Outcome = "issues-found", PendingBalance = 100
+    },
+    new() {
+        Id = "6", ClientName = "Ava Martinez", ClientPhone = "(555) 555-6666", ClientEmail = "ava.m@email.com",
+        PropertyAddress = "987 Birch Blvd, Springfield, IL 62706", PropertyType = "Condominium",
+        Date = "2025-05-29", Time = "3:00 PM", Status = "completed", Outcome = "passed"
+    },
+
+    // Next Month (July 2025)
+    new() {
+        Id = "7", ClientName = "Liam Nguyen", ClientPhone = "(555) 777-8888", ClientEmail = "liam.n@email.com",
+        PropertyAddress = "246 Walnut Way, Springfield, IL 62707", PropertyType = "Townhouse",
+        Date = "2025-07-05", Time = "10:30 AM", Status = "upcoming"
+    },
+    new() {
+        Id = "8", ClientName = "Olivia Brooks", ClientPhone = "(555) 999-0000", ClientEmail = "olivia.b@email.com",
+        PropertyAddress = "135 Chestnut Drive, Springfield, IL 62708", PropertyType = "Single Family Home",
+        Date = "2025-07-15", Time = "12:00 PM", Status = "upcoming"
+    },
+    new() {
+        Id = "9", ClientName = "Ethan Turner", ClientPhone = "(555) 222-3333", ClientEmail = "ethan.t@email.com",
+        PropertyAddress = "852 Hickory Street, Springfield, IL 62709", PropertyType = "Apartment",
+        Date = "2025-07-20", Time = "9:00 AM", Status = "upcoming"
+    }
+};
+
+    private List<Visit> UpcomingVisits => Visits.Where(v => v.Status == "upcoming").ToList();
+    private List<Visit> CompletedVisits => Visits.Where(v => v.Status == "completed").ToList();
+
+    // Helper: Parse date string to DateTime
+    private DateTime ParseVisitDate(Visit v)
+        => DateTime.TryParse(v.Date, out var dt) ? dt : DateTime.MinValue;
+
+    // List View (original)
+    private RenderFragment ListView() => __builder =>
+    {
+        <MudTabs @bind-ActivePanelIndex="_activeTabIndex" Rounded="true">
+            <MudTabPanel Text=@($"Upcoming ({UpcomingVisits.Count})")>
+                @if (UpcomingVisits.Any())
+                {
+                    <MudGrid Class="mt-4" Spacing="3">
+                        @foreach (var visit in UpcomingVisits)
+                        {
+                            <MudItem xs="12" sm="6" md="4">
+                                <VisitCard Visit="@visit" OnClick="@(() => ShowVisitDialog(visit))" />
+                            </MudItem>
+                        }
+                    </MudGrid>
+                }
+                else
+                {
+                    <div class="text-center py-12 text-muted">
+                        <MudIcon Icon="@Icons.Material.Filled.Event" Size="Size.Large" />
+                        <MudText>No upcoming visits scheduled</MudText>
+                    </div>
+                }
+            </MudTabPanel>
+            <MudTabPanel Text=@($"Completed ({CompletedVisits.Count})")>
+                @if (CompletedVisits.Any())
+                {
+                    <MudGrid Class="mt-4" Spacing="3">
+                        @foreach (var visit in CompletedVisits)
+                        {
+                            <MudItem xs="12" sm="6" md="4">
+                                <VisitCard Visit="@visit" OnClick="@(() => ShowVisitDialog(visit))" />
+                            </MudItem>
+                        }
+                    </MudGrid>
+                }
+                else
+                {
+                    <div class="text-center py-12 text-muted">
+                        <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Large" />
+                        <MudText>No completed visits yet</MudText>
+                    </div>
+                }
+            </MudTabPanel>
+        </MudTabs>
+;
+    };
+
+    // Weekly View (compact pills)
+    private RenderFragment WeeklyView() => __builder =>
+    {
+        var startOfWeek = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek);
+        var days = Enumerable.Range(0, 7).Select(i => _weeklyStart.AddDays(i)).ToList();
+
+        <MudGrid Class="mb-2 mt-2">
+            <MudItem xs="6">
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="() => _weeklyStart = _weeklyStart.AddDays(-7)">
+                    Prev Week
+                </MudButton>
+            </MudItem>
+            <MudItem xs="6" Class="text-end">
+                <MudButton Variant="Variant.Outlined" EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="() => _weeklyStart = _weeklyStart.AddDays(7)">
+                    Next Week
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+        <div class="calendar-grid mb-2">
+            @foreach (var day in days)
+            {
+                <div class="calendar-header">@day.ToString("ddd, MMM d")</div>
+            }
+            @foreach (var day in days)
+            {
+                <div class="calendar-cell">
+                    <div class="calendar-date">@day.Day</div>
+                    @foreach (var visit in Visits.Where(v => ParseVisitDate(v).Date == day.Date))
+                    {
+                        <div class="visit-pill bg-info" @onclick="@(() => ShowVisitDialog(visit))" style="cursor:pointer;">
+                            <span title="@visit.ClientName">@GetInitials(visit.ClientName)</span>
+                            <span class="ms-1">@visit.Time</span>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+;
+    };
+
+    // Monthly View (compact pills)
+    private RenderFragment MonthlyView() => __builder =>
+    {
+        var today = DateTime.Today;
+        var firstDayOfMonth = new DateTime(_monthlyReference.Year, _monthlyReference.Month, 1);
+        var daysInMonth = DateTime.DaysInMonth(_monthlyReference.Year, _monthlyReference.Month);
+        var firstDayOfWeek = (int)firstDayOfMonth.DayOfWeek;
+        var totalCells = firstDayOfWeek + daysInMonth;
+        var weeks = (int)Math.Ceiling(totalCells / 7.0);
+
+        var dayNames = new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+        <MudGrid Class="mb-2 mt-2">
+            <MudItem xs="6">
+                <MudButton Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.KeyboardArrowLeft" OnClick="() => _monthlyReference = _monthlyReference.AddMonths(-1)">
+                    Prev Month
+                </MudButton>
+            </MudItem>
+            <MudItem xs="6" Class="text-end">
+                <MudButton Variant="Variant.Outlined" EndIcon="@Icons.Material.Filled.KeyboardArrowRight" OnClick="() => _monthlyReference = _monthlyReference.AddMonths(1)">
+                    Next Month
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+        <div class="calendar-grid mb-2" style="grid-template-columns: repeat(7, 1fr);">
+            @foreach (var dayName in dayNames)
+            {
+                <div class="calendar-header">@dayName</div>
+            }
+            @for (int cell = 0; cell < weeks * 7; cell++)
+            {
+                int dateNum = cell - firstDayOfWeek + 1;
+                if (dateNum < 1 || dateNum > daysInMonth)
+                {
+                    <div class="calendar-cell"></div>
+                }
+                else
+                {
+                    var cellDate = new DateTime(_monthlyReference.Year, _monthlyReference.Month, dateNum);
+                    <div class="calendar-cell">
+                        <div class="calendar-date">@dateNum</div>
+                        @foreach (var visit in Visits.Where(v => ParseVisitDate(v).Date == cellDate.Date))
+                        {
+                            <div class="visit-pill bg-info" @onclick="@(() => ShowVisitDialog(visit))" style="cursor:pointer;">
+                                <span title="@visit.ClientName">@GetInitials(visit.ClientName)</span>
+                                <span class="ms-1">@visit.Time</span>
+                            </div>
+                        }
+                    </div>
+                }
+            }
+        </div>
+    };
+
+    // Helper to get initials from client name
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "";
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1) return parts[0][0].ToString();
+        return string.Concat(parts[0][0], parts[^1][0]);
+    }
+}

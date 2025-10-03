@@ -1,0 +1,106 @@
+﻿@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@implements IDisposable
+
+
+<MudPaper Width="250px" Class="py-3" Elevation="0">
+    <MudNavMenu>
+        <MudNavLink Href="/" Match="NavLinkMatch.All" Class="mud-nav-link-title">InspTor</MudNavLink>
+        <MudDivider Class="my-2" />
+        <MudNavLink Href="/" Icon="@Icons.Material.Outlined.Home" Match="NavLinkMatch.All">DASHBOARD</MudNavLink>
+        <MudNavLink Href="/image-text-scanner" Icon="@Icons.Material.Outlined.Event" Match="NavLinkMatch.Prefix">IMAGE SCANNER</MudNavLink>
+        @if (isLoggedIn)
+        {
+            <MudNavLink Href="/sample-reports" Icon="@Icons.Material.Outlined.InsertDriveFile" Match="NavLinkMatch.Prefix">REPORTS</MudNavLink>
+            <MudNavLink Href="/image-manager" Icon="@Icons.Material.Rounded.ImageSearch" Match="NavLinkMatch.Prefix">IMAGES</MudNavLink>
+            <MudNavLink Href="/checkout" Icon="@Icons.Material.Rounded.ShoppingCartCheckout" Match="NavLinkMatch.Prefix">CHECKOUT</MudNavLink>
+            <MudNavLink Href="/start-inspection" Icon="@Icons.Material.Outlined.Checklist" Match="NavLinkMatch.Prefix">INSPECTION</MudNavLink>
+            <MudNavLink Href="/my-inspections" Icon="@Icons.Material.Outlined.ListAlt" Match="NavLinkMatch.Prefix">MY INSPECTIONS</MudNavLink>
+            <MudNavLink Href="/settings" Icon="@Icons.Material.Outlined.Settings" Match="NavLinkMatch.Prefix">SETTINGS</MudNavLink>
+            <MudButton StartIcon="@Icons.Material.Rounded.Logout" OnClick="Logout" Class="mud-nav-link">LOGOUT</MudButton>
+        }
+        else
+        {
+            <MudNavLink Href="/login" Icon="@Icons.Material.Rounded.Login" Match="NavLinkMatch.Prefix">LOGIN</MudNavLink>
+        }
+        <InspectorPwaPoc.Pages.ThemeModeToggle></InspectorPwaPoc.Pages.ThemeModeToggle>
+    </MudNavMenu>
+</MudPaper>
+
+<script>
+    window.setNavMenuDotNetHelper = function (dotNetHelper) {
+        window._navMenuDotNetHelper = dotNetHelper;
+    };
+
+    window.registerNavMenuRouteHandler = function (dotNetHelper) {
+        if (window.Blazor && window.Blazor.navigateTo) {
+            window.Blazor.addEventListener("locationChanged", () => {
+                dotNetHelper.invokeMethodAsync("OnRouteChanged");
+            });
+        } else {
+            window.addEventListener("popstate", () => {
+                dotNetHelper.invokeMethodAsync("OnRouteChanged");
+            });
+        }
+    };
+
+    window.notifyLoginStateChanged = function () {
+        if (window._navMenuDotNetHelper) {
+            window._navMenuDotNetHelper.invokeMethodAsync("OnLoginStateChanged");
+        }
+    };
+</script>
+
+@code {
+    private bool isOpen = false;
+    private bool isLoggedIn = false;
+    private DotNetObjectReference<MyNavMenu>? _dotNetRef;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            var jwt = await JS.InvokeAsync<string>("localStorage.getItem", "jwt");
+            isLoggedIn = !string.IsNullOrEmpty(jwt);
+            StateHasChanged();
+
+            await JS.InvokeVoidAsync("registerNavMenuRouteHandler", _dotNetRef);
+            await JS.InvokeVoidAsync("setNavMenuDotNetHelper", _dotNetRef);
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnRouteChanged()
+    {
+        isOpen = false;
+        // Update login state
+        var jwt = await JS.InvokeAsync<string>("localStorage.getItem", "jwt");
+        isLoggedIn = !string.IsNullOrEmpty(jwt);
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public async Task OnLoginStateChanged()
+    {
+        var jwt = await JS.InvokeAsync<string>("localStorage.getItem", "jwt");
+        isLoggedIn = !string.IsNullOrEmpty(jwt);
+        StateHasChanged();
+    }
+
+    private void ToggleMenu() => isOpen = !isOpen;
+    private void CloseMenu() => isOpen = false;
+
+    private async Task Logout()
+    {
+        await JS.InvokeVoidAsync("localStorage.removeItem", "jwt");
+        isLoggedIn = false;
+        Navigation.NavigateTo("/", true);
+        // Notify menu to update
+        await JS.InvokeVoidAsync("notifyLoginStateChanged");
+    }
+    public void Dispose()
+    {
+        _dotNetRef?.Dispose();
+    }
+}

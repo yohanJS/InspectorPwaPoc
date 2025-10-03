@@ -1,0 +1,44 @@
+﻿@using MudBlazor
+@using InspectorPwaPoc.Models
+
+<MudDialog>
+    <TitleContent>
+        Visit Details
+    </TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.subtitle1">@Visit.ClientName</MudText>
+        <MudText>@Visit.PropertyAddress</MudText>
+        <MudText>@Visit.Date at @Visit.Time</MudText>
+        <MudText>@Visit.PropertyType</MudText>
+        @if (Visit.PendingBalance is not null)
+        {
+            <MudText Color="Color.Error">Pending Balance: $@Visit.PendingBalance</MudText>
+        }
+        @if (Visit.Outcome is not null)
+        {
+            <MudChip T="string" Color="@((Visit.Outcome == "passed") ? Color.Success : Color.Error)"
+                     Variant="Variant.Filled" StartIcon="@((Visit.Outcome == "passed") ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Error)">
+                @((Visit.Outcome == "passed") ? "Passed" : "Issues Found")
+            </MudChip>
+        }
+        <MudText Class="mt-2">@Visit.ClientEmail</MudText>
+        <MudText>@Visit.ClientPhone</MudText>
+        <MudText Class="mt-2">Status: @Visit.Status</MudText>
+        @if (Visit.Status == "completed" && Visit.Outcome is not null)
+        {
+            <MudText Class="mt-2">Outcome: @Visit.Outcome</MudText>
+        }
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Close">Close</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [Parameter] public Visit Visit { get; set; } = default!;
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; }
+
+    private void Close() => MudDialog.Close();
+}

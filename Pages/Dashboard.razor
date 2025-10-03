@@ -1,0 +1,83 @@
+﻿@page "/dashboard"
+
+@code {
+    public record Appointment(
+        string Date,
+        string Time,
+        string Type,
+        string ImageUrl,
+        string DirectionsUrl,
+        string AgentName,
+        string AgentPhone,
+        string CustomerName,
+        string CustomerPhone
+    );
+
+    public List<Appointment> Appointments = new()
+    {
+        new Appointment(
+            "April 24",
+            "8:50",
+            "Residential",
+            "https://imagedelivery.net/YIVCzYnz4796uVIlcnjggw/a0364173-a50d-49dc-70a2-6c434fc61900/public",
+            "https://www.google.com/maps/search/?api=1&query=123+Main+St,+City,+State",
+            "Jane Doe",
+            "+1 (234) 567-890",
+            "John Smith",
+            "+1 (987) 654-321"
+        ),
+        new Appointment(
+            "April 25",
+            "10:15",
+            "Commercial",
+            "https://imagedelivery.net/YIVCzYnz4796uVIlcnjggw/660eddf1-e8b3-4962-6393-13545d403700/public",
+            "https://www.google.com/maps/search/?api=1&query=456+Market+St,+City,+State",
+            "Tom Agent",
+            "+1 (111) 222-3333",
+            "Alice Client",
+            "+1 (999) 888-7777"
+        )
+    };
+}
+@if (Appointments.Any())
+{
+    foreach (var app in Appointments)
+    {
+        <MudCard Class="d-inline-flex pa-4 my-4 mx-2">
+            <MudPaper Class="pa-2 mud-theme-secondary" Color="Color.Secondary">@app.Date @app.Time</MudPaper>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.body1">Customer Information</MudText>
+                    <MudText Typo="Typo.body2">@app.CustomerName</MudText>
+                    <MudText Typo="Typo.body2">@app.CustomerPhone</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudIconButton Icon="@Icons.Material.Filled.Phone" Color="Color.Default" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Map" Color="Color.Default" />
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudPaper Class="pa-2 mb-2" Color="Color.Secondary">@app.Type</MudPaper>
+            <MudCardMedia Image=@app.ImageUrl
+                          Class="fixed-card-media" />
+            <MudCardContent>
+                <MudText Typo="Typo.body2">This photo was taken in a small village in Istra Croatia.</MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudIconButton Icon="@Icons.Material.Filled.Map" Color="Color.Default" />
+                <MudIconButton Icon="@Icons.Material.Filled.Email" Color="Color.Default" />
+            </MudCardActions>
+        </MudCard>
+    }
+}
+
+
+<style>
+    .fixed-card-media {
+        width: 320px !important;
+        height: 200px !important;
+        object-fit: cover;
+        margin: 0 auto;
+        display: block;
+        border-radius: 8px;
+    }
+</style>

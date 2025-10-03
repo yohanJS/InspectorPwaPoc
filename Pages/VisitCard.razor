@@ -1,0 +1,34 @@
+﻿@using InspectorPwaPoc.Models
+@inherits LayoutComponentBase
+
+
+@code {
+    [Parameter] public Visit Visit { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    private Color ChipColor => Visit.Outcome == "passed" ? Color.Success : Color.Error;
+    private string ChipIcon => Visit.Outcome == "passed" ? Icons.Material.Filled.CheckCircle : Icons.Material.Filled.Error;
+    private string ChipText => Visit.Outcome == "passed" ? "Passed" : "Issues Found";
+}
+
+<MudCard Class="visit-card" Style="cursor:pointer;" @onclick="OnClick">
+    <MudCardContent Class="p-4">
+        <div class="d-flex justify-between align-start mb-2">
+            <div class="flex-grow-1">
+                <MudText Typo="Typo.subtitle1">@Visit.ClientName</MudText>
+            </div>
+            @if (Visit.Status == "completed" && Visit.Outcome is not null)
+            {
+                <MudChip T="string" Color="@ChipColor" Variant="Variant.Filled" StartIcon="@ChipIcon">
+                    @ChipText
+                </MudChip>
+            }
+        </div>
+
+        <div class="visit-info">
+            <div><MudIcon Icon="@Icons.Material.Filled.Event" Class="visit-icon" />@DateTime.Parse(Visit.Date).ToShortDateString()</div>
+            <div><MudIcon Icon="@Icons.Material.Filled.Schedule" Class="visit-icon" />@Visit.Time</div>
+            <MudAlert>Click for more details</MudAlert>
+        </div>
+    </MudCardContent>
+</MudCard>

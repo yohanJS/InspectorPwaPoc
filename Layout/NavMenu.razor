@@ -1,0 +1,223 @@
+﻿@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+@code {
+    private bool isOpen = false;
+    private bool isLoggedIn = false;
+
+    protected override void OnInitialized()
+    {
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var jwt = await JS.InvokeAsync<string>("sessionStorage.getItem", "jwt");
+            isLoggedIn = !string.IsNullOrEmpty(jwt);
+            StateHasChanged();
+
+            await JS.InvokeVoidAsync("registerNavMenuRouteHandler", DotNetObjectReference.Create(this));
+        }
+    }
+
+
+    [JSInvokable]
+    public async Task OnRouteChanged()
+    {
+        isOpen = false;
+        StateHasChanged();
+        // Update login state
+        var jwt = await JS.InvokeAsync<string>("sessionStorage.getItem", "jwt");
+        isLoggedIn = !string.IsNullOrEmpty(jwt);
+        StateHasChanged();
+    }
+
+
+    private void ToggleMenu() => isOpen = !isOpen;
+    private void CloseMenu() => isOpen = false;
+
+    private async Task Logout()
+    {
+        await JS.InvokeVoidAsync("sessionStorage.removeItem", "jwt");
+        isLoggedIn = false;
+        Navigation.NavigateTo("/", true);
+    }
+}
+
+<nav class="navbar fixed-top mobile-navbar pb-3">
+    <div class="container-fluid d-flex justify-content-between align-items-center p-0">
+        <div class="d-flex align-items-center">
+            <a href="/" class="brand m-2 text-decoration-none">
+                <img src="https://imagedelivery.net/YIVCzYnz4796uVIlcnjggw/5e303e95-f9a1-4610-4dc7-edb6d568ad00/public"
+                     class="img-fluid" style="width: 30px; height: auto;">
+                InspTor
+            </a>
+        </div>
+        <!-- Hamburger Icon (Only visible on small screens) -->
+        <div class="hamburger d-md-none m-2" @onclick="ToggleMenu">
+            <span class="material-icons" style="font-size: 2rem; color: #fff;">menu</span>
+        </div>
+        <!-- Inline Nav Links (Only visible on DESKTOP md and up) -->
+        <ul class="nav-links d-none d-md-flex align-items-center mb-0">
+            <li><NavLink class="nav-link mx-2" href="home">HOME</NavLink></li>
+            <li><NavLink class="nav-link mx-2  rounded-2" href="testimonials">REVIEWS</NavLink></li>
+            <li><NavLink class="nav-link mx-2" href="guide">GUIDE</NavLink></li>
+            <li><NavLink class="nav-link mx-2" href="sample-reports">REPORTS</NavLink></li>
+            @if (isLoggedIn)
+            {
+                <li><NavLink class="nav-link mx-2" href="image-manager">IMAGES</NavLink></li>
+                <li><button class="nav-link mx-2 bg-danger text-white rounded-2" @onclick="Logout">LOGOUT</button></li>
+            }
+            else
+            {
+                <li><NavLink class="nav-link mx-2" href="">LOGIN</NavLink></li>
+            }
+        </ul>
+    </div>
+
+    <!-- Full-screen overlay sidebar for mobile -->
+    <div class="mobile-overlay @(isOpen ? "active" : "")" @onclick="CloseMenu"></div>
+    <div class="sidebar-mobile d-md-none @(isOpen ? "active" : "")">
+        <button class="close-btn text-white mb-3" @onclick="CloseMenu">✖</button>
+        <ul class="nav-links">
+            <li><NavLink class="nav-link mb-2" href="home" @onclick="CloseMenu">HOME</NavLink></li>
+            <li><NavLink class="nav-link mb-2  rounded-2" href="testimonials" @onclick="CloseMenu">REVIEWS</NavLink></li>
+            <li><NavLink class="nav-link mb-2" href="guide" @onclick="CloseMenu">GUIDE</NavLink></li>
+            <li><NavLink class="nav-link mb-2" href="sample-reports" @onclick="CloseMenu">REPORTS</NavLink></li>
+            @if (isLoggedIn)
+            {
+                <li><NavLink class="nav-link mb-2" href="image-manager" @onclick="CloseMenu">IMAGES</NavLink></li>
+                <li><button class="nav-link mb-2 bg-danger text-white rounded-2 w-100" @onclick="Logout">LOGOUT</button></li>
+            }
+            else
+            {
+                <li><NavLink class="nav-link mb-2" href="" @onclick="CloseMenu">LOGIN</NavLink></li>
+            }
+        </ul>
+    </div>
+</nav>
+
+@* JS for route change detection *@
+<script>
+    window.registerNavMenuRouteHandler = function (dotNetHelper) {
+        if (window.Blazor && window.Blazor.navigateTo) {
+            // .NET 8+ navigation event
+            window.Blazor.addEventListener("locationChanged", () => {
+                dotNetHelper.invokeMethodAsync("OnRouteChanged");
+            });
+        } else {
+            // fallback for older Blazor
+            window.addEventListener("popstate", () => {
+                dotNetHelper.invokeMethodAsync("OnRouteChanged");
+            });
+        }
+    };
+</script>
+
+<style>
+
+    .mobile-navbar {
+        background: #1c2e41;
+        color: #fff;
+        box-shadow: none;
+        border-bottom-left-radius: 10px;
+        border-bottom-right-radius: 10px;
+    }
+
+    .brand, .brand:visited {
+        color: #fff !important;
+        font-weight: 600;
+    }
+
+    .hamburger {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .mobile-overlay {
+        display: none;
+    }
+
+        .mobile-overlay.active {
+            display: block;
+            position: fixed;
+            z-index: 1040;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(2px);
+            transition: opacity 0.3s;
+        }
+
+    .sidebar-mobile {
+        position: fixed;
+        top: 0;
+        right: -100vw;
+        width: 80vw;
+        max-width: 320px;
+        height: 100vh;
+        background: #1c2e41;
+        color: #fff;
+        z-index: 1050;
+        padding: 2rem 1.5rem 1.5rem 1.5rem;
+        box-shadow: -2px 0 12px rgba(0,0,0,0.15);
+        transition: right 0.3s cubic-bezier(.4,0,.2,1);
+        display: flex;
+        flex-direction: column;
+        border-top-left-radius: 18px;
+        border-bottom-left-radius: 18px;
+    }
+
+        .sidebar-mobile.active {
+            right: 0;
+        }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 1.2rem;
+        color: #FAF9F6 !important;
+        align-self: flex-end;
+        margin-bottom: 2rem;
+        cursor: pointer;
+    }
+
+    .nav-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .nav-link {
+        display: block;
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+        color: #fff !important;
+        border-radius: 5px;
+        text-align: left;
+        transition: background 0.2s, color 0.2s;
+    }
+
+        .nav-link:hover, .nav-link.active {
+            background: #fff;
+            color: #000 !important;
+        }
+
+    . {
+        color: #ffe066 !important;
+        background: #fff2cc;
+        font-weight: 600;
+    }
+
+    media (min-width: 768px) {
+        .sidebar-mobile, .mobile-overlay
+
+    {
+        display: none !important;
+    }
+</style>

@@ -1,0 +1,256 @@
+﻿@page "/"
+@inject NavigationManager Navigation
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mx-auto pa-0">
+
+    <MudText Align="Align.Center" Typo="Typo.h3" Class="title">Welcome to InspTor</MudText>
+    <MudText Align="Align.Center" Typo="Typo.subtitle2" Class="subtitle">Your professional home inspection companion</MudText>
+
+    @*BUTTONS*@
+    <MudGrid Class="mt-4">
+        @*New Inspection Button*@
+        <MudItem Class="no-vertical-padding" xs="12" md="6">
+            <div class="inspection-card" @onclick="@(() => Navigation.NavigateTo("/new-inspection-page"))" style="cursor:pointer;">
+                <div class="icon-container">
+                    <MudIcon Icon="@Icons.Material.Outlined.Add" Size="Size.Large" Class="icon-plus" />
+                </div>
+                <div class="card-content">
+                    <MudText Typo="Typo.subtitle1" Class="card-title">New Inspection</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="card-subtitle">Start a new property inspection</MudText>
+                </div>
+            </div>
+        </MudItem>
+        @*Scheduled Visits Button*@
+        <MudItem Class="no-vertical-padding" xs="12" md="6">
+            <div class="scheduled-card" @onclick="@(() => Navigation.NavigateTo("/scheduled-visits"))" style="cursor:pointer;">
+                <div class="icon-container">
+                    <MudIcon Icon="@Icons.Material.Outlined.CalendarToday" Size="Size.Large" Class="icon-plus" />
+                </div>
+                <div class="card-content">
+                    <MudText Typo="Typo.subtitle1" Class="card-title">Scheduled Visits</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="card-subtitle">View upcoming inspections</MudText>
+                </div>
+            </div>
+        </MudItem>
+        @*Past Records Button*@
+        <MudItem Class="no-vertical-padding" xs="12" md="6">
+            <div class="past-records-card">
+                <div class="icon-container">
+                    <MudIcon Icon="@Icons.Material.Outlined.InsertDriveFile" Size="Size.Large" Class="icon-plus" />
+                </div>
+                <div class="card-content">
+                    <MudText Typo="Typo.subtitle1" Class="card-title">Past Records</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="card-subtitle">Access completed inspections</MudText>
+                </div>
+            </div>
+        </MudItem>
+        @*Clients Buttons*@
+        <MudItem Class="no-vertical-padding" xs="12" md="6">
+            <div class="client-card" @onclick="@(() => Navigation.NavigateTo("/clients-section"))" style="cursor:pointer;">
+                <div class="icon-container">
+                    <MudIcon Icon="@Icons.Material.Outlined.PeopleAlt" Size="Size.Large" Class="icon-plus" />
+                </div>
+                <div class="card-content">
+                    <MudText Typo="Typo.subtitle1" Class="card-title">Clients</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="card-subtitle">Manage your client database</MudText>
+                </div>
+            </div>
+        </MudItem>
+        @*Q&A Buttons*@
+        <MudItem Class="no-vertical-padding" xs="12" md="6">
+            <div class="qna-card">
+                <div class="icon-container">
+                    <MudIcon Icon="@Icons.Material.Outlined.HelpOutline" Size="Size.Large" Class="icon-plus" />
+                </div>
+                <div class="card-content">
+                    <MudText Typo="Typo.subtitle1" Class="card-title">Q&A</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="card-subtitle">Get help and find answers</MudText>
+                </div>
+            </div>
+        </MudItem>
+        @*Payment Button*@
+        <MudItem Class="no-vertical-padding" xs="12" md="6">
+            <div class="scheduled-card">
+                <div class="icon-container">
+                    <MudIcon Icon="@Icons.Material.Outlined.Payment" Size="Size.Large" Class="icon-plus" />
+                </div>
+                <div class="card-content">
+                    <MudText Typo="Typo.subtitle1" Class="card-title">Billing</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="card-subtitle">Subcriptions and payments</MudText>
+                </div>
+            </div>
+        </MudItem>
+        @*Settings Button*@
+        <MudItem Class="no-vertical-padding" xs="12" md="6">
+            <div class="setting-card">
+                <div class="icon-container">
+                    <MudIcon Icon="@Icons.Material.Outlined.Settings" Size="Size.Large" Class="icon-plus" />
+                </div>
+                <div class="card-content">
+                    <MudText Typo="Typo.subtitle1" Class="card-title">Settings</MudText>
+                    <MudText Typo="Typo.subtitle2" Class="card-subtitle">Configure app preferences</MudText>
+                </div>
+            </div>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+<style>
+    .title {
+        font-weight: 700;
+        font-size: 1.8rem;
+        line-height: 2rem;
+        margin-bottom: 0.5rem;
+        margin-top: 3.5rem;
+    }
+    .subtitle {
+        font-weight: 400;
+        font-size: 1rem;
+        line-height: 1.6rem;
+        margin-bottom: 3.5rem;
+    }
+
+    .no-vertical-padding {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+    }
+    .inspection-card {
+        display: flex;
+        align-items: center;
+        background: #f5fcff;
+        border: 1.5px solid #c6d3e3;
+        border-radius: 8px;
+        padding: 10px 10px;
+        transition: background 0.2s, box-shadow 0.2s;
+        box-shadow: none;
+        cursor: pointer;
+        margin-bottom: 16px;
+    }
+
+    .inspection-card:hover {
+        background: #dbf3fa;
+        box-shadow: 0 2px 8px 0 rgba(80, 120, 200, 0.08);
+    }
+
+    .scheduled-card {
+        display: flex;
+        align-items: center;
+        background: #eafff2;
+        border: 1.5px solid #83e4aa;
+        border-radius: 8px;
+        padding: 10px 10px;
+        transition: background 0.2s, box-shadow 0.2s;
+        box-shadow: none;
+        cursor: pointer;
+        margin-bottom: 16px;
+    }
+
+    .scheduled-card:hover {
+        background: #daffe7;
+        box-shadow: 0 2px 8px 0 rgba(80, 120, 200, 0.08);
+    }
+
+    .past-records-card {
+        display: flex;
+        align-items: center;
+        background: #ece6ff;
+        border: 1.5px solid #e0d6ff;
+        border-radius: 8px;
+        padding: 10px 10px;
+        transition: background 0.2s, box-shadow 0.2s;
+        box-shadow: none;
+        cursor: pointer;
+        margin-bottom: 16px;
+    }
+
+    .past-records-card:hover {
+        background: #e0d6ff;
+        box-shadow: 0 2px 8px 0 rgba(80, 120, 200, 0.08);
+    }
+
+    .client-card {
+        display: flex;
+        align-items: center;
+        background: #fff4de;
+        border: 1.5px solid #fad9b6;
+        border-radius: 8px;
+        padding: 10px 10px;
+        transition: background 0.2s, box-shadow 0.2s;
+        box-shadow: none;
+        cursor: pointer;
+        margin-bottom: 16px;
+    }
+
+    .client-card:hover {
+            background: #ffeec9;
+        box-shadow: 0 2px 8px 0 rgba(80, 120, 200, 0.08);
+    }
+
+    .qna-card {
+        display: flex;
+        align-items: center;
+        background: #d1dff6;
+        border: 1.5px solid #92b6f0;
+        border-radius: 8px;
+        padding: 10px 10px;
+        transition: background 0.2s, box-shadow 0.2s;
+        box-shadow: none;
+        cursor: pointer;
+        margin-bottom: 16px;
+    }
+
+    .qna-card:hover {
+        background: #b2cbf2;
+        box-shadow: 0 2px 8px 0 rgba(80, 120, 200, 0.08);
+    }
+
+    .setting-card {
+        display: flex;
+        align-items: center;
+        background: #FFFFFF;
+        border: 1.5px solid #E7E6DF;
+        border-radius: 8px;
+        padding: 10px 10px;
+        transition: background 0.2s, box-shadow 0.2s;
+        box-shadow: none;
+        cursor: pointer;
+        margin-bottom: 16px;
+    }
+
+    .setting-card:hover {
+            background: #F6F6F6;
+        box-shadow: 0 2px 8px 0 rgba(80, 120, 200, 0.08);
+    }
+
+    .icon-container {
+        background: #fff;
+        border-radius: 12px;
+        width: 56px;
+        height: 56px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 24px;
+        box-shadow: 0 1px 4px 0 rgba(80, 120, 200, 0.06);
+    }
+
+    .icon-plus {
+        color: #2563eb;
+        font-size: 1.6rem;
+    }
+
+    .card-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .card-title {
+        font-weight: 700;
+        color: #1a202c;
+    }
+
+    .card-subtitle {
+        color: #4b5563;
+        margin-top: 2px;
+    }
+</style>

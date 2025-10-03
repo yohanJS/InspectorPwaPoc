@@ -1,0 +1,240 @@
+﻿@page "/image-manager"
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="my-5 pt-5">
+    <MudText Typo="Typo.h4" Align="Align.Center" Class="mb-6">Cloudflare Image Manager</MudText>
+
+    <!-- Upload Form -->
+    <MudPaper Class="p-6 mb-6" Elevation="2" Style="border-radius: 1.25rem;">
+        <MudText Typo="Typo.h6" Class="mb-3">Upload an Image</MudText>
+        <MudStack Spacing="2">
+            <InputFile OnChange="@OnFileChange" />
+            @if (selectedFile != null)
+            {
+                <MudText Typo="Typo.body2">Selected: @selectedFile.Name</MudText>
+            }
+
+            @if (displaySpinnerMessage)
+            {
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Medium" Class="mx-auto" />
+            }
+            else
+            {
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           OnClick="UploadImage"
+                           Disabled="@(!isFileSelected)"
+                           Class="w-100">
+                    Upload Image
+                </MudButton>
+            }
+        </MudStack>
+    </MudPaper>
+
+    <!-- Load Images -->
+    <MudStack AlignItems="AlignItems.Center" Class="mt-4 mb-4">
+        @if (displaySpinnerMessage)
+        {
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Medium" />
+        }
+        else
+        {
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="FetchAllImages">
+                Load All Images
+            </MudButton>
+        }
+    </MudStack>
+
+    <!-- Image Display -->
+    @if (images?.Count > 0)
+    {
+        <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4 mt-6">Images</MudText>
+        <MudGrid Gutter="GutterSize.Medium" Class="pt-4">
+            @foreach (var image in images)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Class="mb-4 d-flex flex-column card-fixed-height" Style="border-radius: 1.25rem; position: relative;">
+                        <MudCardMedia Image="@image.Variants[0]" Alt="@image.Filename"
+                                      Height="180"
+                                      Style="object-fit:cover; border-top-left-radius:1.25rem; border-top-right-radius:1.25rem;" />
+
+                        <MudChip T="string" Color="Color.Primary"
+                                 Style="position:absolute;top:1rem;right:1rem;">
+                            @GetFileExtension(image.Filename)
+                        </MudChip>
+
+                        <MudCardContent Class="flex-grow-1 d-flex flex-column">
+                            <MudText Typo="Typo.subtitle1" Class="mb-1" Style="font-weight:600;word-break:break-all;">
+                                @image.Filename
+                            </MudText>
+                            <MudText Typo="Typo.body2" Class="mb-2">
+                                Uploaded: @FormatDateTime(image.Uploaded)
+                            </MudText>
+                            <MudPaper Class="d-flex align-items-center mb-2 px-2 py-1"
+                                      Style="background:#f1f5f9;border-radius:0.5rem;">
+                                <MudText Typo="Typo.caption" Class="me-2"
+                                         Style="color:#2563eb;word-break:break-all;">
+                                    @ShortenUrl(image.Variants[0])
+                                </MudText>
+                                <MudIconButton Icon="@Icons.Material.Filled.ContentCopy"
+                                               Color="Color.Primary"
+                                               Size="Size.Small"
+                                               OnClick="@(() => CopyToClipboard(image.Variants[0]))"
+                                               Title="Copy URL" />
+                            </MudPaper>
+
+                            <MudStack Direction="Row" Spacing="1" Justify="Justify.Center" Class="mt-auto">
+                                @if (displayDeletingMessage)
+                                {
+                                    <MudProgressCircular Color="Color.Error" Indeterminate="true" Size="Size.Medium" />
+                                }
+                                else
+                                {
+                                    <MudButton Variant="Variant.Outlined"
+                                               Color="Color.Error"
+                                               Size="Size.Small"
+                                               OnClick="@(() => DeleteImage(image.Id))"
+                                               StartIcon="@Icons.Material.Filled.Delete">
+                                        Delete
+                                    </MudButton>
+                                }
+                            </MudStack>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    else if (!displaySpinnerMessage)
+    {
+        <MudText Align="Align.Center" Class="mt-4">
+            No images found. Try uploading an image.
+        </MudText>
+    }
+</MudContainer>
+
+@code {
+    private List<CloudflareImage> images = new();
+    private IBrowserFile? selectedFile;
+    private bool displaySpinnerMessage = false;
+    private bool displayDeletingMessage = false;
+    private bool isFileSelected => selectedFile != null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        displaySpinnerMessage = true;
+        await FetchAllImages();
+        displaySpinnerMessage = false;
+    }
+
+    private async Task OnFileChange(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+    }
+
+    private async Task UploadImage()
+    {
+        if (selectedFile == null) return;
+
+        var content = new MultipartFormDataContent();
+        var stream = selectedFile.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024); // 10MB
+        content.Add(new StreamContent(stream), "file", selectedFile.Name);
+
+        displaySpinnerMessage = true;
+
+        var response = await Http.PostAsync("https://engfuel.com/ImageUploader/UploadFile", content);
+
+        displaySpinnerMessage = false;
+
+        if (response.IsSuccessStatusCode)
+        {
+            selectedFile = null;
+            await FetchAllImages();
+            await JS.InvokeVoidAsync("alert", "Image uploaded successfully!");
+        }
+        else
+        {
+            Console.Error.WriteLine("Error uploading image.");
+        }
+    }
+
+    private async Task FetchAllImages()
+    {
+        try
+        {
+            displaySpinnerMessage = true;
+            var result = await Http.GetFromJsonAsync<CloudflareResponse>(
+                "https://engfuel.com/ImageUploader/GetAllImages"
+            );
+            images = result?.Result.Images ?? new List<CloudflareImage>();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error fetching images: {ex.Message}");
+        }
+        finally
+        {
+            displaySpinnerMessage = false;
+        }
+    }
+
+    private async Task DeleteImage(string id)
+    {
+        displayDeletingMessage = true;
+        var response = await Http.DeleteAsync($"https://engfuel.com/ImageUploader/DeleteImage?imageId={id}");
+        if (response.IsSuccessStatusCode)
+        {
+            await FetchAllImages();
+            await JS.InvokeVoidAsync("alert", "Image deleted successfully!");
+        }
+        else
+        {
+            Console.Error.WriteLine("Error deleting image.");
+        }
+        displayDeletingMessage = false;
+    }
+
+    private string FormatDateTime(DateTime dateTime)
+    {
+        return dateTime.ToLocalTime().ToString("MMMM d, yyyy h:mm tt");
+    }
+
+    private string GetFileExtension(string filename)
+    {
+        if (string.IsNullOrWhiteSpace(filename)) return "";
+        var parts = filename.Split('.');
+        return parts.Length > 1 ? parts[^1].ToUpperInvariant() : "";
+    }
+
+    private string ShortenUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return "";
+        if (url.Length <= 32) return url;
+        return url.Substring(0, 18) + "..." + url.Substring(url.Length - 10);
+    }
+
+    private async Task CopyToClipboard(string text)
+    {
+        await JS.InvokeVoidAsync("navigator.clipboard.writeText", text);
+        await JS.InvokeVoidAsync("alert", "Image URL copied to clipboard!");
+    }
+
+    public class CloudflareResponse
+    {
+        public CloudflareResult Result { get; set; } = new();
+    }
+
+    public class CloudflareResult
+    {
+        public List<CloudflareImage> Images { get; set; } = new();
+    }
+
+    public class CloudflareImage
+    {
+        public string Id { get; set; } = string.Empty;
+        public string Filename { get; set; } = string.Empty;
+        public DateTime Uploaded { get; set; }
+        public List<string> Variants { get; set; } = new();
+    }
+}

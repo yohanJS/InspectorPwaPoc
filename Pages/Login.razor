@@ -1,0 +1,167 @@
+﻿@page "/login"
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@inject IJSRuntime JS
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="my-5 pt-5">
+    <MudPaper Class="mx-auto p-6" Style="max-width: 420px; border-radius: 12px; padding:20px">
+        <MudText Typo="Typo.h5" Align="Align.Center" Class="mb-4">Log in to your account</MudText>
+        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            <MudStack Spacing="2">
+                <MudTextField @bind-Value="loginModel.Email"
+                              Label="Email"
+                              For="@(() => loginModel.Email)"
+                              Required="true"
+                              InputType="InputType.Email"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Email"
+                              Disabled="@isLoading" />
+                <MudTextField @bind-Value="loginModel.Password"
+                              Label="Password"
+                              For="@(() => loginModel.Password)"
+                              Required="true"
+                              InputType="InputType.Password"
+                              Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Lock"
+                              Disabled="@isLoading" />
+                <MudButton Type="Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Class="w-100"
+                           Disabled="@isLoading"
+                           Style="background: linear-gradient(135deg, #007FFF, #4e44bc);">
+                    @(isLoading ? "Logging in..." : "Login")
+                </MudButton>
+            </MudStack>
+        </EditForm>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mt-3">@errorMessage</MudAlert>
+        }
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <MudAlert Severity="Severity.Success" Class="mt-3">@successMessage</MudAlert>
+        }
+
+        <MudDivider Class="my-4">Or</MudDivider>
+
+        <MudButton StartIcon="@Icons.Custom.Brands.Google"
+                   Variant="Variant.Outlined"
+                   Color="Color.Default"
+                   OnClick="@(() => LoginWithProvider("google"))"
+                   Class="mb-1"
+                   Style="text-transform:none;">
+            Login with Google
+        </MudButton>
+
+        <MudButton StartIcon="@Icons.Custom.Brands.Facebook"
+                   Variant="Variant.Filled"
+                   Color="Color.Info"
+                   OnClick="@(() => LoginWithProvider("facebook"))"
+                   Class="mb-1"
+                   Style="text-transform:none;">
+            Login with Facebook
+        </MudButton>
+
+        <MudButton StartIcon="@Icons.Custom.Brands.Microsoft"
+                   Variant="Variant.Outlined"
+                   Color="Color.Default"
+                   OnClick="@(() => LoginWithProvider("microsoft"))"
+                   Class="mb-1"
+                   Style="text-transform:none;">
+            Login with Microsoft
+        </MudButton>
+
+        <MudStack Direction="Row" Justify="Justify.Center" Spacing="1" Class="mt-4 flex-wrap">
+            <MudNavLink Href="/Register" Class="text-primary">Register</MudNavLink>
+            <MudNavLink Href="/demo" Class="text-secondary">Try Demo</MudNavLink>
+            <MudNavLink Href="/forgot-password" Class="text-danger">Forgot password?</MudNavLink>
+        </MudStack>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private LoginModel loginModel = new();
+    private bool isLoading = false;
+    private string? errorMessage;
+    private string? successMessage;
+
+    private async Task HandleLogin()
+    {
+        errorMessage = null;
+        successMessage = null;
+        isLoading = true;
+
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, "/Account/login")
+            {
+                Content = JsonContent.Create(loginModel)
+            };
+
+            // Add your API key to the headers
+            request.Headers.Add("x-api-key", "0d2e643e-e9b4-4b1a-bb7a-e717f4ae1f5d"); // Replace with your actual key
+
+            var response = await Http.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<LoginResult>();
+                if (!string.IsNullOrEmpty(result?.Token))
+                {
+                    await JS.InvokeVoidAsync("localStorage.setItem", "jwt", result.Token);
+                    successMessage = "Login successful!";
+                    Navigation.NavigateTo("/");
+                }
+                else
+                {
+                    errorMessage = "Invalid login response.";
+                }
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                errorMessage = !string.IsNullOrWhiteSpace(error) ? error : "Login failed.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    // private void LoginWithProvider(string provider)
+    // {
+    //     var apiBaseUrl = "https://localhost:7041"; // Or use config/env
+    //     Navigation.NavigateTo($"{apiBaseUrl}/login/{provider}", forceLoad: true);
+    // }
+
+    private async Task LoginWithProvider(string provider)
+    {
+        // Set the API key in a secure cookie
+        await JS.InvokeVoidAsync("eval", @"
+        document.cookie = 'x-api-key=b080b57967024b238fb80744c188d86753000efb978b4c1e92ce97bf903ee76c; path=/; secure; samesite=strict';
+    ");
+
+        // Redirect to external login
+        var apiBaseUrl = "https://localhost:7041";
+        Navigation.NavigateTo($"{apiBaseUrl}/login/{provider}", forceLoad: true);
+    }
+
+    public class LoginModel
+    {
+        public string? Email { get; set; }
+        public string? Password { get; set; }
+    }
+
+    public class LoginResult
+    {
+        public string? Token { get; set; }
+    }
+}
