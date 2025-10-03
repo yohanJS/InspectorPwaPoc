@@ -98,7 +98,8 @@
         try
         {
             var apiKey = Configuration["ApiKey"];
-            var request = new HttpRequestMessage(HttpMethod.Post, "/Account/login")
+            var apiBaseUrl = Configuration["ApiBaseUrl"];
+            var request = new HttpRequestMessage(HttpMethod.Post, $"{apiBaseUrl}/Account/login")
             {
                 Content = JsonContent.Create(loginModel)
             };
