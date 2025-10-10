@@ -1,6 +1,9 @@
 ﻿@page "/clients-section"
 @inherits LayoutComponentBase
 @inject NavigationManager Navigation
+@inject HttpClient Http
+@inject IJSRuntime JS
+@inject IConfiguration Configuration
 
 
 <style>
@@ -35,6 +38,9 @@
 </style>
 
 <MudContainer Class="mt-4 p-0">
+    <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="FetchBusinesses">
+        Fetch Businesses
+    </MudButton>
     <MudGrid Class="mb-4">
         <MudItem xs="6">
             <MudText Typo="Typo.h5" Class="title-page">Clients</MudText>
@@ -169,6 +175,39 @@
             newClient = new(); // Reset form when opening
     }
 
+    private List<Business> Businesses = new();
+
+    private async Task FetchBusinesses()
+    {
+        try
+        {
+            var apiKey = Configuration["ApiKey"];
+            var token = await JS.InvokeAsync<string>("localStorage.getItem", "jwt");
+
+            var request = new HttpRequestMessage(HttpMethod.Get, "https://enrollpro-ctdeb9a9a9c8b8ez.canadacentral-01.azurewebsites.net/business/getAllBusinesses");
+            request.Headers.Add("x-api-key", apiKey);
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<List<Business>>();
+                if (result != null)
+                    Businesses = result;
+            }
+            else
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Error: {error}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception: {ex.Message}");
+        }
+    }
+
     public class Client
     {
         public string Id { get; set; }
@@ -177,6 +216,12 @@
         public string Phone { get; set; }
         public string Address { get; set; }
         public int Inspections { get; set; }
+    }
+    public class Business
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Email { get; set; }
     }
 }
 

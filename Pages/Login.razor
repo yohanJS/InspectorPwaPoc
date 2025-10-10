@@ -140,12 +140,8 @@
 
     private async Task LoginWithProvider(string provider)
     {
-        var apiKey = Configuration["ApiKey"];
         var apiBaseUrl = Configuration["ApiBaseUrl"];
-
-        await JS.InvokeVoidAsync("eval", $"document.cookie = 'x-api-key={apiKey}; path=/; secure; samesite=strict';");
-
-        Navigation.NavigateTo($"{apiBaseUrl}/redirect/{provider}", forceLoad: true);
+        Navigation.NavigateTo($"{apiBaseUrl}/login/{provider}", forceLoad: true);
     }
 
     public class LoginModel
